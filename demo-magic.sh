@@ -12,10 +12,10 @@
 ###############################################################################
 
 # the speed to "type" the text
-TYPE_SPEED=20
+TYPE_SPEED=14
 
 # no wait after "p" or "pe"
-NO_WAIT=false
+NO_WAIT=true
 
 # if > 0, will pause for this amount of seconds before automatically proceeding with any p or pe
 PROMPT_TIMEOUT=0
@@ -70,6 +70,18 @@ function wait() {
   fi
 }
 
+function prompt() {
+  # render the prompt
+  x=$(PS1="$DEMO_PROMPT" "$BASH" --norc -i </dev/null 2>&1 | sed -n '${s/^\(.*\)exit$/\1/p;}')
+
+  # show command number is selected
+  if $SHOW_CMD_NUMS; then
+   printf "[$((++C_NUM))] $x"
+  else
+   printf "$x"
+  fi
+}
+
 ##
 # print command only. Useful for when you want to pretend to run a command
 #
@@ -83,16 +95,6 @@ function p() {
     cmd=$DEMO_COMMENT_COLOR$1$COLOR_RESET
   else
     cmd=$DEMO_CMD_COLOR$1$COLOR_RESET
-  fi
-
-  # render the prompt
-  x=$(PS1="$DEMO_PROMPT" "$BASH" --norc -i </dev/null 2>&1 | sed -n '${s/^\(.*\)exit$/\1/p;}')
-  
-  # show command number is selected
-  if $SHOW_CMD_NUMS; then
-   printf "[$((++C_NUM))] $x"
-  else
-   printf "$x"
   fi
 
   # wait for the user to press a key before typing the command
@@ -127,6 +129,8 @@ function pe() {
 
   # execute the command
   eval "$@"
+
+  prompt
 }
 
 ##
