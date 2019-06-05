@@ -2,12 +2,7 @@
 
 ###############################################################################
 #
-# demo-magic.sh
-#
-# Copyright (c) 2015 Paxton Hare
-#
-# This script lets you script demos in bash. It runs through your demo script when you press
-# ENTER. It simulates typing and runs commands.
+# Based on demo-magic.sh by Paxton Hare
 #
 ###############################################################################
 
