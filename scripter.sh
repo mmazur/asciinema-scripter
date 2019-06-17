@@ -1,23 +1,22 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 ###############################################################################
 #
 # Based on demo-magic.sh by Paxton Hare
+#
+# Gives you the ability to script a whole verbose terminal demo.
+# Discover your inner Aaron Sorkin.
 #
 ###############################################################################
 
 # the speed to "type" the text
 TYPE_SPEED=14
 
-# no wait after "p" or "pe"
-NO_WAIT=true
-
-# if > 0, will pause for this amount of seconds before automatically proceeding with any p or pe
-PROMPT_TIMEOUT=0
+# if > 0, sleep for this many seconds after each command finishes
+AUTO_SLEEP=1
 
 # don't show command number unless user specifies it
 SHOW_CMD_NUMS=false
-
 
 # handy color vars for pretty prompts
 BLACK="\033[0;30m"
@@ -48,25 +47,26 @@ function usage() {
   echo -e "\tWhere options is one or more of:"
   echo -e "\t-h\tPrints Help text"
   echo -e "\t-d\tDebug mode. Disables simulated typing"
-  echo -e "\t-n\tNo wait"
-  echo -e "\t-w\tWaits max the given amount of seconds before proceeding with demo (e.g. '-w5')"
+  echo -e "\t-c\tNumber each command."
   echo -e ""
 }
 
 ##
 # wait for user to press ENTER
-# if $PROMPT_TIMEOUT > 0 this will be used as the max time for proceeding automatically
+#
+# takes 1 optional param - max length of time to wait for, in seconds
+#
 ##
 function wait() {
-  if [[ "$PROMPT_TIMEOUT" == "0" ]]; then
-    read -rs
+  if [[ -n "$1" ]]; then
+    read -rst "$1"
   else
-    read -rst "$PROMPT_TIMEOUT"
+    read -rs
   fi
 }
 
+# Render the prompt
 function prompt() {
-  # render the prompt
   x=$(PS1="$DEMO_PROMPT" "$BASH" --norc -i </dev/null 2>&1 | sed -n '${s/^\(.*\)exit$/\1/p;}')
 
   # show command number is selected
@@ -75,14 +75,18 @@ function prompt() {
   else
    printf "$x"
   fi
+
+  if [[ "$AUTO_SLEEP" != "0" ]]; then
+    read -rst "$AUTO_SLEEP"
+  fi
 }
 
 ##
-# print command only. Useful for when you want to pretend to run a command
+# Only print a command. Useful for when you want to pretend to run a command
 #
 # takes 1 param - the string command to print
 #
-# usage: p "ls -l"
+# usage: p "format c:"
 #
 ##
 function p() {
@@ -92,21 +96,12 @@ function p() {
     cmd=$DEMO_CMD_COLOR$1$COLOR_RESET
   fi
 
-  # wait for the user to press a key before typing the command
-  if !($NO_WAIT); then
-    wait
-  fi
-
   if [[ -z $TYPE_SPEED ]]; then
     echo -en "$cmd"
   else
     echo -en "$cmd" | pv -qL $[$TYPE_SPEED+(-2 + RANDOM%5)];
   fi
 
-  # wait for the user to press a key before moving on
-  if !($NO_WAIT); then
-    wait
-  fi
   echo ""
 }
 
@@ -114,6 +109,7 @@ function p() {
 # Prints and executes a command
 #
 # takes 1 parameter - the string command to run
+# TODO: second param for delay between last letter and ENTER
 #
 # usage: pe "ls -l"
 #
@@ -169,7 +165,7 @@ check_pv
 # -h for help
 # -d for disabling simulated typing
 #
-while getopts ":dhncw:" opt; do
+while getopts ":hdc:" opt; do
   case $opt in
     h)
       usage
@@ -178,14 +174,8 @@ while getopts ":dhncw:" opt; do
     d)
       unset TYPE_SPEED
       ;;
-    n)
-      NO_WAIT=true
-      ;;
     c)
       SHOW_CMD_NUMS=true
-      ;;
-    w)
-      PROMPT_TIMEOUT=$OPTARG
       ;;
   esac
 done
