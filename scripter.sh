@@ -29,6 +29,8 @@ PURPLE="\033[0;35m"
 BROWN="\033[0;33m"
 WHITE="\033[1;37m"
 COLOR_RESET="\033[0m"
+CRESET="$COLOR_RESET"
+CRES="$COLOR_RESET"
 
 C_NUM=0
 
@@ -66,7 +68,12 @@ function wait() {
 }
 
 # Render the prompt
+# If a parameter is provided, use that as the prompt for the rest of the script
 function prompt() {
+  if [[ -n "$1" ]]; then
+    DEMO_PROMPT="$1"
+  fi
+
   x=$(PS1="$DEMO_PROMPT" "$BASH" --norc -i </dev/null 2>&1 | sed -n '${s/^\(.*\)exit$/\1/p;}')
 
   # show command number is selected
